@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1a5f4a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Deen Daily">
+  <title>Deen Daily - Your Daily Islamic Companion</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/logo.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/logo-192.png">
+  <script src="config.js"></script>
+  <script>
+    const savedTheme = localStorage.getItem('deen-daily-theme') || 'white';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  </script>
+</head>
+<body>
+  <!-- Toast Notification -->
+  <div id="toast" class="toast"></div>
+  
+  <!-- Header -->
+  <header class="header">
+    <div class="container header-inner">
+      <div class="logo">Deen Daily</div>
+      <div class="header-info">
+        <span class="lang-indicator">EN + UR</span>
+        <div class="date-display" id="headerDate"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="container">
+      
+      <!-- Next Prayer Card -->
+      <div class="card prayer-card">
+        <div class="card-header">
+          <span class="card-title">Next Prayer</span>
+        </div>
+        <div class="next-prayer-name" id="nextPrayerName">Loading...</div>
+        <div class="prayer-time" id="nextPrayerTime">--:--</div>
+        <div class="countdown" id="countdown">
+          <div class="countdown-item">
+            <div class="countdown-value" id="hours">--</div>
+            <div class="countdown-label">Hours</div>
+          </div>
+          <div class="countdown-item">
+            <div class="countdown-value" id="minutes">--</div>
+            <div class="countdown-label">Mins</div>
+          </div>
+          <div class="countdown-item">
+            <div class="countdown-value" id="seconds">--</div>
+            <div class="countdown-label">Secs</div>
+          </div>
+        </div>
+        <a href="prayer.html" class="btn btn-outline btn-small">View Full Prayer Times</a>
+      </div>
+
+      <!-- Daily Ayah Card -->
+      <div class="card ayah-card" id="dailyAyah">
+        <div class="card-header">
+          <span class="card-title">Daily Ayah</span>
+          <button class="btn-icon" id="saveAyahBtn" title="Save Ayah">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </button>
+        </div>
+        <div class="loading">
+          <div class="spinner"></div>
+          <p>Loading daily ayah...</p>
+        </div>
+      </div>
+
+      <!-- Duas Section -->
+      <h2 class="section-title">Daily Duas</h2>
+      <div id="duaFeed"></div>
+      
+      <!-- Loading Indicator -->
+      <div class="loading" id="loadingMore">
+        <div class="spinner"></div>
+        <p>Loading more duas...</p>
+      </div>
+      
+      <!-- End Message -->
+      <div class="loading" id="endMessage" style="display: none;">
+        <p>All duas loaded. May Allah accept your duas.</p>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Navigation Bar -->
+  <nav class="nav-bar">
+    <div class="container nav-inner">
+      <a href="index.html" class="nav-item active">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+        <span>Home</span>
+      </a>
+      <a href="prayer.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <span>Prayer</span>
+      </a>
+      <a href="tasbih.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2v20M2 12h20"></path>
+          <path d="M12 2a10 10 0 0 1 0 20"></path>
+          <path d="M12 2a10 10 0 0 0 0 20"></path>
+        </svg>
+        <span>Tasbih</span>
+      </a>
+      <a href="quran.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          <line x1="8" y1="7" x2="16" y2="7"></line>
+          <line x1="8" y1="11" x2="14" y2="11"></line>
+        </svg>
+        <span>Quran</span>
+      </a>
+      <a href="favorites.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+        </svg>
+        <span>Saved</span>
+      </a>
+      <button class="nav-item" id="settingsBtn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"></path>
+        </svg>
+        <span>Settings</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Settings Panel -->
+  <div class="settings-overlay" id="settingsOverlay">
+    <div class="settings-panel">
+      <div class="settings-header">
+        <h2>Settings</h2>
+        <button class="settings-close" id="settingsClose">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      
+      <!-- Profile Section -->
+      <div class="settings-section" id="profileSection">
+        <div class="profile-card">
+          <div class="profile-avatar" id="profileAvatar">?</div>
+          <div class="profile-info">
+            <div class="profile-name" id="profileName">Guest</div>
+            <div class="profile-email" id="profileEmail">Sign in to sync your data</div>
+          </div>
+        </div>
+        <button class="settings-save-btn" id="loginBtn">Sign In / Sign Up</button>
+        <button class="settings-save-btn secondary" id="logoutBtn" style="display: none;">Sign Out</button>
+      </div>
+      
+      <!-- Appearance Section -->
+      <div class="settings-section">
+        <div class="settings-section-title">Appearance</div>
+        <div class="theme-options">
+          <div class="theme-option white" data-theme="white">
+            <div class="theme-option-icon white"></div>
+            <div class="theme-option-label">White</div>
+          </div>
+          <div class="theme-option black" data-theme="black">
+            <div class="theme-option-icon black"></div>
+            <div class="theme-option-label">Black</div>
+          </div>
+          <div class="theme-option green" data-theme="green">
+            <div class="theme-option-icon green"></div>
+            <div class="theme-option-label">Green</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Location Section -->
+      <div class="settings-section">
+        <div class="settings-section-title">Prayer Times Location</div>
+        <input type="text" class="settings-location-input" id="settingsCityInput" placeholder="Enter city name">
+        <button class="settings-save-btn" id="saveLocationBtn">Save Location</button>
+      </div>
+      
+      <!-- About Section -->
+      <div class="settings-section">
+        <div class="settings-section-title">About</div>
+        <div class="settings-row">
+          <span class="settings-row-label">Version</span>
+          <span class="settings-row-value">1.0.0</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Panel Script -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAnbSpt2-We658sYnSAZSXYz1WYu-Ioyic",
+      authDomain: "deen--daily.firebaseapp.com",
+      projectId: "deen--daily",
+      storageBucket: "deen--daily.firebasestorage.app",
+      messagingSenderId: "189832469044",
+      appId: "1:189832469044:web:6e3bebe071cc1acba28861",
+      measurementId: "G-Q9YXBD46E4"
+    };
+
+    let app, auth, currentUser;
+
+    try {
+      app = initializeApp(firebaseConfig);
+      auth = getAuth(app);
+      
+      onAuthStateChanged(auth, (user) => {
+        currentUser = user;
+        updateProfileUI(user);
+      });
+    } catch (e) {
+      console.log('Firebase not configured');
+    }
+
+    function updateProfileUI(user) {
+      const profileAvatar = document.getElementById('profileAvatar');
+      const profileName = document.getElementById('profileName');
+      const profileEmail = document.getElementById('profileEmail');
+      const loginBtn = document.getElementById('loginBtn');
+      const logoutBtn = document.getElementById('logoutBtn');
+      
+      if (user && user.displayName) {
+        profileAvatar.textContent = user.displayName.charAt(0).toUpperCase();
+        profileName.textContent = user.displayName;
+        profileEmail.textContent = user.email || 'Signed in with Google';
+        loginBtn.style.display = 'none';
+        logoutBtn.style.display = 'block';
+      } else {
+        profileAvatar.textContent = '?';
+        profileName.textContent = 'Guest';
+        profileEmail.textContent = 'Sign in to sync your data';
+        loginBtn.style.display = 'block';
+        logoutBtn.style.display = 'none';
+      }
+    }
+
+    // Settings panel
+    const settingsBtn = document.getElementById('settingsBtn');
+    const settingsOverlay = document.getElementById('settingsOverlay');
+    const settingsClose = document.getElementById('settingsClose');
+    const settingsCityInput = document.getElementById('settingsCityInput');
+    
+    if (settingsBtn && settingsOverlay) {
+      settingsBtn.addEventListener('click', () => {
+        settingsOverlay.classList.add('active');
+        if (settingsCityInput) {
+          settingsCityInput.value = localStorage.getItem('prayerCity') || 'London';
+        }
+      });
+      
+      settingsOverlay.addEventListener('click', (e) => {
+        if (e.target === settingsOverlay) {
+          settingsOverlay.classList.remove('active');
+        }
+      });
+      
+      if (settingsClose) {
+        settingsClose.addEventListener('click', () => {
+          settingsOverlay.classList.remove('active');
+        });
+      }
+    }
+    
+    // Theme options
+    function updateThemeUI(theme) {
+      document.querySelectorAll('.theme-option').forEach(opt => {
+        opt.classList.toggle('active', opt.dataset.theme === theme);
+      });
+    }
+    
+    const savedTheme = localStorage.getItem('deen-daily-theme') || 'white';
+    updateThemeUI(savedTheme);
+    
+    document.querySelectorAll('.theme-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        const theme = opt.dataset.theme;
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('deen-daily-theme', theme);
+        updateThemeUI(theme);
+      });
+    });
+    
+    // Save location
+    const saveLocationBtn = document.getElementById('saveLocationBtn');
+    if (saveLocationBtn && settingsCityInput) {
+      saveLocationBtn.addEventListener('click', () => {
+        const city = settingsCityInput.value.trim();
+        if (city) {
+          localStorage.setItem('prayerCity', city);
+          settingsOverlay.classList.remove('active');
+          location.reload();
+        }
+      });
+    }
+
+    // Login button
+    document.getElementById('loginBtn')?.addEventListener('click', () => {
+      window.location.href = 'login.html';
+    });
+
+    // Logout button
+    document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+      if (auth) {
+        await signOut(auth);
+        window.location.href = 'index.html';
+      }
+    });
+  </script>
+
+  <!-- Firebase SDK -->
+  <script type="module" src="index.js"></script>
+</body>
+</html>

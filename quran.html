@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1a5f4a">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/logo.svg" type="image/svg+xml">
+  <title>Quran - Deen Daily</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☪</text></svg>">
+  <script src="config.js"></script>
+  <script>
+    const savedTheme = localStorage.getItem('deen-daily-theme') || 'white';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  </script>
+</head>
+<body>
+<header class="header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">Deen Daily</a>
+      <div class="header-info"><span class="lang-indicator">EN</span></div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <div class="quran-header">
+        <h1>Quran</h1>
+        <p>Read the Holy Quran</p>
+      </div>
+      <div class="loading" id="loading"><div class="spinner"></div><p>Loading surahs...</p></div>
+      <div class="quran-list" id="surahList"></div>
+    </div>
+  </main>
+
+  <nav class="nav-bar">
+    <div class="container nav-inner">
+      <a href="index.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg><span>Home</span></a>
+      <a href="prayer.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg><span>Prayer</span></a>
+      <a href="tasbih.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"></path><path d="M12 2a10 10 0 0 1 0 20"></path><path d="M12 2a10 10 0 0 0 0 20"></path></svg><span>Tasbih</span></a>
+      <a href="quran.html" class="nav-item active"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path><line x1="8" y1="7" x2="16" y2="7"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg><span>Quran</span></a>
+      <a href="favorites.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg><span>Saved</span></a>
+      <button class="nav-item" id="settingsBtn"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg><span>Settings</span></button>
+    </div>
+  </nav>
+
+  <div class="settings-overlay" id="settingsOverlay">
+    <div class="settings-panel">
+      <div class="settings-header"><h2>Settings</h2><button class="settings-close" id="settingsClose"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button></div>
+      <div class="settings-section">
+        <div class="settings-section-title">Profile</div>
+        <div class="profile-card">
+          <div class="profile-avatar" id="profileAvatar">?</div>
+          <div class="profile-info">
+            <div class="profile-name" id="profileName">Guest</div>
+            <div class="profile-email" id="profileEmail">Sign in to sync your data</div>
+          </div>
+        </div>
+        <button class="settings-save-btn" id="loginBtn">Sign In / Sign Up</button>
+        <button class="settings-save-btn secondary" id="logoutBtn" style="display: none;">Sign Out</button>
+      </div>
+      <div class="settings-section"><div class="settings-section-title">Appearance</div><div class="theme-options"><div class="theme-option white" data-theme="white"><div class="theme-option-icon white"></div><div class="theme-option-label">White</div></div><div class="theme-option black" data-theme="black"><div class="theme-option-icon black"></div><div class="theme-option-label">Black</div></div><div class="theme-option green" data-theme="green"><div class="theme-option-icon green"></div><div class="theme-option-label">Green</div></div></div></div>
+      <div class="settings-section"><div class="settings-section-title">Prayer Times Location</div><input type="text" class="settings-location-input" id="settingsCityInput" placeholder="Enter city name"><button class="settings-save-btn" id="saveLocationBtn">Save Location</button></div>
+      <div class="settings-section"><div class="settings-section-title">About</div><div class="settings-row"><span class="settings-row-label">Version</span><span class="settings-row-value">1.0.0</span></div></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAnbSpt2-We658sYnSAZSXYz1WYu-Ioyic",
+      authDomain: "deen--daily.firebaseapp.com",
+      projectId: "deen--daily",
+      storageBucket: "deen--daily.firebasestorage.app",
+      messagingSenderId: "189832469044",
+      appId: "1:189832469044:web:6e3bebe071cc1acba28861",
+      measurementId: "G-Q9YXBD46E4"
+    };
+
+    let app, auth, currentUser;
+
+    try {
+      app = initializeApp(firebaseConfig);
+      auth = getAuth(app);
+      onAuthStateChanged(auth, (user) => {
+        currentUser = user;
+        updateProfileUI(user);
+      });
+    } catch (e) {
+      console.log('Firebase not configured');
+    }
+
+    function updateProfileUI(user) {
+      const profileAvatar = document.getElementById('profileAvatar');
+      const profileName = document.getElementById('profileName');
+      const profileEmail = document.getElementById('profileEmail');
+      const loginBtn = document.getElementById('loginBtn');
+      const logoutBtn = document.getElementById('logoutBtn');
+      
+      if (user && user.displayName) {
+        profileAvatar.textContent = user.displayName.charAt(0).toUpperCase();
+        profileName.textContent = user.displayName;
+        profileEmail.textContent = user.email || 'Signed in with Google';
+        loginBtn.style.display = 'none';
+        logoutBtn.style.display = 'block';
+      } else {
+        profileAvatar.textContent = '?';
+        profileName.textContent = 'Guest';
+        profileEmail.textContent = 'Sign in to sync your data';
+        loginBtn.style.display = 'block';
+        logoutBtn.style.display = 'none';
+      }
+    }
+
+    document.getElementById('loginBtn')?.addEventListener('click', () => window.location.href = 'login.html');
+    document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+      if (auth) { await signOut(auth); window.location.href = 'index.html'; }
+    });
+
+    const savedTheme = localStorage.getItem('deen-daily-theme') || 'white';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    document.querySelectorAll('.theme-option').forEach(opt => opt.classList.toggle('active', opt.dataset.theme === savedTheme));
+    const settingsBtn = document.getElementById('settingsBtn');
+    const settingsOverlay = document.getElementById('settingsOverlay');
+    if (settingsBtn && settingsOverlay) {
+      settingsBtn.addEventListener('click', () => { settingsOverlay.classList.add('active'); document.getElementById('settingsCityInput').value = localStorage.getItem('prayerCity') || 'London'; });
+      settingsOverlay.addEventListener('click', (e) => { if (e.target === settingsOverlay) settingsOverlay.classList.remove('active'); });
+      document.getElementById('settingsClose').addEventListener('click', () => settingsOverlay.classList.remove('active'));
+    }
+    document.querySelectorAll('.theme-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        document.documentElement.setAttribute('data-theme', opt.dataset.theme);
+        localStorage.setItem('deen-daily-theme', opt.dataset.theme);
+        document.querySelectorAll('.theme-option').forEach(o => o.classList.remove('active'));
+        opt.classList.add('active');
+      });
+    });
+    document.getElementById('saveLocationBtn')?.addEventListener('click', () => {
+      const city = document.getElementById('settingsCityInput').value.trim();
+      if (city) { localStorage.setItem('prayerCity', city); settingsOverlay.classList.remove('active'); location.reload(); }
+    });
+  </script>
+
+  <script src="quran.js"></script>
+</body>
+</html>

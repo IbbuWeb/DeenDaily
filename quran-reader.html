@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quran Reader - Deen Daily</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☪</text></svg>">
+  <script src="config.js"></script>
+  <script>
+    const savedTheme = localStorage.getItem('deen-daily-theme') || 'white';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  </script>
+</head>
+<body>
+  <header class="header">
+    <div class="container header-inner">
+      <a href="quran.html" class="back-btn" style="margin-bottom: 0;">← Back</a>
+      <div class="header-info"><span class="lang-indicator">AR + EN + UR</span></div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <div class="quran-reader">
+        <div class="surah-header">
+          <a href="quran.html" class="back-btn">← Back to Surahs</a>
+          <h1 id="surahName">Loading...</h1>
+          <div class="arabic-name" id="surahArabic"></div>
+        </div>
+        <div class="loading" id="loading"><div class="spinner"></div><p>Loading verses...</p></div>
+        <div id="versesList"></div>
+      </div>
+    </div>
+  </main>
+
+  <style>
+    .quran-reader { padding: 20px 0; padding-bottom: 100px; }
+    .surah-header { text-align: center; padding: 24px 20px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); margin: -16px -16px 20px -16px; }
+    .surah-header h1 { font-size: 1.5rem; margin-bottom: 4px; font-weight: 600; }
+    .surah-header .arabic-name { font-family: 'Noto Naskh Arabic', serif; font-size: 1.3rem; color: var(--accent); }
+    .verse-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 12px; }
+    .verse-number { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: var(--accent); color: white; border-radius: 50%; font-size: 0.7rem; font-weight: 600; margin-bottom: 12px; }
+    .verse-arabic { font-family: 'Noto Naskh Arabic', serif; font-size: 1.5rem; line-height: 2; direction: rtl; text-align: right; color: var(--text-primary); margin-bottom: 14px; }
+    .verse-translation { font-size: 0.9rem; line-height: 1.7; color: var(--text-secondary); padding-top: 12px; border-top: 1px solid var(--border); }
+    .verse-urdu { font-family: 'Noto Sans Urdu', sans-serif; direction: rtl; text-align: right; margin-top: 10px; color: var(--text-tertiary); font-size: 0.85rem; line-height: 1.7; }
+    .back-btn { display: inline-flex; align-items: center; gap: 6px; color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 12px; padding: 8px 14px; border-radius: 50px !important; background: var(--bg-tertiary); transition: all 0.2s; text-decoration: none; }
+    .back-btn:hover { color: var(--accent); background: var(--accent-light); }
+    .verse-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .verse-actions { display: flex; align-items: center; gap: 4px; }
+    .verse-bookmark-btn { background: none; border: none; cursor: pointer; padding: 6px; color: var(--text-muted); transition: color 0.2s; }
+    .verse-bookmark-btn:hover { color: var(--accent); }
+    .verse-bookmark-btn.active { color: var(--accent); }
+    .verse-audio-btn { background: none; border: none; cursor: pointer; padding: 6px; color: var(--text-muted); transition: color 0.2s; }
+    .verse-audio-btn:hover { color: var(--accent); }
+    .verse-card.bookmarked { border-color: var(--accent); background: var(--bg-highlight); }
+    .verse-card.playing { border-color: var(--accent); outline: 3px solid var(--accent); outline-offset: 2px; background: var(--bg-highlight); }
+    .audio-floating-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--bg-card); border: 1px solid var(--border); border-radius: 50px; padding: 10px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; }
+    .audio-floating-bar.active { opacity: 1; visibility: visible; }
+    .audio-floating-bar .verse-info { font-size: 0.85rem; color: var(--text-secondary); max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .audio-floating-bar button { background: none; border: none; cursor: pointer; padding: 8px; color: var(--text-primary); display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background 0.2s; }
+    .audio-floating-bar button:hover { background: var(--bg-highlight); }
+    .audio-floating-bar button.primary { background: var(--accent); color: white; }
+    .audio-floating-bar button.primary:hover { background: var(--deep-green); }
+  </style>
+
+  <div class="audio-floating-bar" id="audioBar">
+    <button onclick="prevVerse()" title="Previous verse">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" stroke-width="2"></line></svg>
+    </button>
+    <button class="primary" onclick="togglePlayPause()" id="playPauseBtn" title="Play/Pause">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+    </button>
+    <button onclick="nextVerse()" title="Next verse">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2"></line></svg>
+    </button>
+    <span class="verse-info" id="currentVerseInfo"></span>
+  </div>
+
+  <script src="quran-reader.js"></script>
+</body>
+</html>
