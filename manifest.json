@@ -1,0 +1,89 @@
+{
+  "name": "Deen Daily - Your Daily Islamic Companion",
+  "short_name": "Deen Daily",
+  "description": "Your daily Islamic companion for prayers, Quran, tasbih, and duas",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1a5f4a",
+  "orientation": "any",
+  "categories": ["lifestyle", "education"],
+  "lang": "en",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Quran",
+      "short_name": "Quran",
+      "description": "Read the Holy Quran",
+      "url": "/quran.html",
+      "icons": [{ "src": "icons/quran-shortcut.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Prayer Times",
+      "short_name": "Prayer",
+      "description": "View prayer times",
+      "url": "/prayer.html",
+      "icons": [{ "src": "icons/prayer-shortcut.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Tasbih",
+      "short_name": "Tasbih",
+      "description": "Digital tasbih counter",
+      "url": "/tasbih.html",
+      "icons": [{ "src": "icons/tasbih-shortcut.png", "sizes": "96x96" }]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}
