@@ -258,5 +258,13 @@
       window.location.href = `quran-reader.html?surah=${surah}`;
     };
   </script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+  </script>
 </body>
 </html>

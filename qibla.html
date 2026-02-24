@@ -280,5 +280,13 @@
       document.getElementById('compassNeedle').style.transform = `translate(-50%, -50%) rotate(${relativeDirection}deg)`;
     }
   </script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+  </script>
 </body>
 </html>

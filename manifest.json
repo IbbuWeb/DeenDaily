@@ -82,6 +82,27 @@
       "description": "Digital tasbih counter",
       "url": "/tasbih.html",
       "icons": [{ "src": "icons/tasbih-shortcut.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Qibla Direction",
+      "short_name": "Qibla",
+      "description": "Find Qibla direction",
+      "url": "/qibla.html",
+      "icons": [{ "src": "icons/qibla-shortcut.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Islamic Calendar",
+      "short_name": "Calendar",
+      "description": "View Islamic calendar",
+      "url": "/calendar.html",
+      "icons": [{ "src": "icons/calendar-shortcut.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Search",
+      "short_name": "Search",
+      "description": "Search Quran and duas",
+      "url": "/search.html",
+      "icons": [{ "src": "icons/search-shortcut.png", "sizes": "96x96" }]
     }
   ],
   "related_applications": [],

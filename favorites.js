@@ -20,6 +20,7 @@ let currentUser = null;
 let currentTab = 'duas';
 let unsubscribeDuas = null;
 let unsubscribeAyahs = null;
+let unsubscribeHadiths = null;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
@@ -103,6 +104,10 @@ async function loadSavedItems(type) {
     unsubscribeAyahs();
     unsubscribeAyahs = null;
   }
+  if (unsubscribeHadiths) {
+    unsubscribeHadiths();
+    unsubscribeHadiths = null;
+  }
   
   if (!currentUser) {
     loading.style.display = 'none';
@@ -110,7 +115,7 @@ async function loadSavedItems(type) {
     return;
   }
   
-  const collectionName = type === 'duas' ? 'saved_duas' : 'saved_ayahs';
+  const collectionName = type === 'duas' ? 'saved_duas' : type === 'hadiths' ? 'saved_hadiths' : 'saved_ayahs';
   
   try {
     // Real-time listener
@@ -145,6 +150,8 @@ async function loadSavedItems(type) {
     // Store unsubscribe function
     if (type === 'duas') {
       unsubscribeDuas = unsubscribe;
+    } else if (type === 'hadiths') {
+      unsubscribeHadiths = unsubscribe;
     } else {
       unsubscribeAyahs = unsubscribe;
     }
@@ -171,6 +178,19 @@ function renderSavedItems(items, type) {
           <div class="source" style="font-size: 0.75rem; color: var(--gold); margin-bottom: 12px;">${item.source}</div>
           <div class="dua-footer">
             <button class="delete-btn" onclick="deleteItem('saved_duas', '${item.id}')">Delete</button>
+          </div>
+        </div>
+      `;
+    } else if (type === 'hadiths') {
+      return `
+        <div class="card">
+          <div class="arabic" style="font-family: 'Noto Naskh Arabic', serif; font-size: 1.3rem; direction: rtl; text-align: right; color: var(--deep-green); margin: 12px 0;">${item.arabic}</div>
+          <div class="english" style="margin-bottom: 8px;">${item.english}</div>
+          ${item.urdu ? `<div class="urdu" style="font-family: 'Noto Sans Urdu', sans-serif; direction: rtl; text-align: right; color: var(--text-muted); margin-bottom: 12px;">${item.urdu}</div>` : ''}
+          <span class="source-ref">${item.bookName} (${item.bookArabic}) - Hadith #${item.hadithNumber}</span>
+          ${item.grade ? `<span class="hadith-grade" style="font-size: 0.7rem; color: var(--text-tertiary); margin-left: 8px;">${item.grade}</span>` : ''}
+          <div class="dua-footer" style="margin-top: 12px;">
+            <button class="delete-btn" onclick="deleteItem('saved_hadiths', '${item.id}')">Delete</button>
           </div>
         </div>
       `;

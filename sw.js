@@ -8,6 +8,8 @@ const STATIC_ASSETS = [
   '/tasbih.html',
   '/favorites.html',
   '/qibla.html',
+  '/calendar.html',
+  '/search.html',
   '/login.html',
   '/style.css',
   '/config.js',
