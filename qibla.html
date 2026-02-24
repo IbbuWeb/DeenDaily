@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Qibla Direction - Deen Daily</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☪</text></svg>">
+  <script src="config.js"></script>
+  <script>
+    if (window.DeenDaily) {
+      const theme = window.DeenDaily.getTheme();
+      window.DeenDaily.applyTheme(theme);
+    }
+  </script>
+</head>
+<body>
+  <header class="header">
+    <div class="container header-inner">
+      <a href="index.html" class="back-btn" style="margin-bottom: 0;">← Home</a>
+      <div class="header-info"><span class="lang-indicator">EN + UR</span></div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <div class="qibla-container">
+        <h1>Qibla Direction</h1>
+        <p class="qibla-subtitle">Find the direction of the Kaaba from your location</p>
+        
+        <div class="location-input-section">
+          <input type="text" id="locationInput" placeholder="Enter city name" class="settings-location-input">
+          <button id="getLocationBtn" class="btn btn-primary">Get Direction</button>
+        </div>
+        
+        <div id="permissionSection" class="permission-section">
+          <p>To use the compass, please allow location access when prompted.</p>
+          <button id="requestPermission" class="btn btn-primary">Enable Compass</button>
+        </div>
+        
+        <div id="compassSection" class="compass-section" style="display: none;">
+          <div class="compass">
+            <div class="compass-ring">
+              <div class="compass-needle" id="compassNeedle">
+                <div class="needle-kaaba">
+                  <span>☪</span>
+                </div>
+                <div class="needle-north">
+                  <span>N</span>
+                </div>
+              </div>
+            </div>
+            <div class="compass-directions">
+              <span class="direction north">N</span>
+              <span class="direction east">E</span>
+              <span class="direction south">S</span>
+              <span class="direction west">W</span>
+            </div>
+          </div>
+          
+          <div class="qibla-info">
+            <div class="qibla-degree" id="qiblaDegree">--°</div>
+            <div class="qibla-bearing">Qibla Bearing</div>
+            <div class="device-bearing" id="deviceBearing">Facing: --°</div>
+          </div>
+          
+          <div class="kaaba-distance" id="kaabaDistance">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <span>Calculating distance...</span>
+          </div>
+        </div>
+        
+        <div class="manual-direction" id="manualDirection" style="display: none;">
+          <p>If compass is not available, the Qibla direction is approximately:</p>
+          <div class="manual-degree">112° (Southeast)</div>
+          <p class="manual-hint">Point the top of your device towards this direction</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <style>
+    .qibla-container { text-align: center; padding: 20px 0; }
+    .qibla-container h1 { font-size: 1.8rem; margin-bottom: 8px; font-weight: 600; }
+    .qibla-subtitle { color: var(--text-tertiary); margin-bottom: 24px; }
+    .location-input-section { display: flex; gap: 10px; margin-bottom: 24px; justify-content: center; }
+    .location-input-section input { flex: 1; max-width: 200px; }
+    .permission-section { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px; }
+    .permission-section p { margin-bottom: 16px; color: var(--text-secondary); }
+    .compass-section { margin-top: 20px; }
+    .compass { position: relative; width: 280px; height: 280px; margin: 0 auto 30px; }
+    .compass-ring { width: 100%; height: 100%; border: 3px solid var(--accent); border-radius: 50%; position: relative; background: var(--bg-card); box-shadow: inset 0 0 30px rgba(26, 95, 74, 0.1); }
+    .compass-needle { position: absolute; top: 50%; left: 50%; width: 200px; height: 200px; transform-origin: center center; transition: transform 0.3s ease-out; }
+    .needle-kaaba { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 50px; height: 50px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; box-shadow: 0 4px 15px rgba(26, 95, 74, 0.4); }
+    .needle-north { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); width: 30px; height: 30px; background: var(--text-tertiary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem; font-weight: 600; }
+    .compass-directions { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
+    .compass-directions .direction { position: absolute; font-weight: 600; font-size: 0.9rem; color: var(--text-tertiary); }
+    .compass-directions .north { top: 8px; left: 50%; transform: translateX(-50%); }
+    .compass-directions .south { bottom: 8px; left: 50%; transform: translateX(-50%); }
+    .compass-directions .east { right: 8px; top: 50%; transform: translateY(-50%); }
+    .compass-directions .west { left: 8px; top: 50%; transform: translateY(-50%); }
+    .qibla-info { margin-bottom: 20px; }
+    .qibla-degree { font-size: 3rem; font-weight: 700; color: var(--accent); }
+    .qibla-bearing { font-size: 0.9rem; color: var(--text-tertiary); margin-bottom: 8px; }
+    .device-bearing { font-size: 1rem; color: var(--text-secondary); }
+    .kaaba-distance { display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--text-tertiary); font-size: 0.9rem; background: var(--bg-tertiary); padding: 12px; border-radius: var(--radius-md); }
+    .manual-direction { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; }
+    .manual-direction p { margin-bottom: 12px; color: var(--text-secondary); }
+    .manual-degree { font-size: 2rem; font-weight: 700; color: var(--accent); margin-bottom: 12px; }
+    .manual-hint { font-size: 0.85rem; color: var(--text-tertiary); }
+    @media (max-width: 480px) {
+      .compass { width: 240px; height: 240px; }
+      .compass-needle { width: 170px; height: 170px; }
+    }
+  </style>
+
+  <script>
+    let userLatitude = null;
+    let userLongitude = null;
+    let qiblaDirection = 112;
+    let deviceHeading = 0;
+    let compassActive = false;
+
+    const kaabaLat = 21.4225;
+    const kaabaLon = 39.8262;
+
+    document.getElementById('getLocationBtn').addEventListener('click', () => {
+      const city = document.getElementById('locationInput').value.trim();
+      if (city) {
+        getLocationFromCity(city);
+      } else {
+        getCurrentLocation();
+      }
+    });
+
+    document.getElementById('requestPermission')?.addEventListener('click', () => {
+      requestCompassPermission();
+    });
+
+    async function getLocationFromCity(city) {
+      try {
+        const response = await fetch(`https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(city)}&limit=1&appid=demo`);
+        const data = await response.json();
+        
+        if (data && data.length > 0) {
+          userLatitude = data[0].lat;
+          userLongitude = data[0].lon;
+          calculateQibla();
+          document.getElementById('permissionSection').style.display = 'none';
+          document.getElementById('compassSection').style.display = 'block';
+          startCompass();
+        } else {
+          alert('City not found. Please try another.');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        showManualDirection();
+      }
+    }
+
+    function getCurrentLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            userLatitude = position.coords.latitude;
+            userLongitude = position.coords.longitude;
+            calculateQibla();
+            document.getElementById('permissionSection').style.display = 'none';
+            document.getElementById('compassSection').style.display = 'block';
+            startCompass();
+          },
+          (error) => {
+            console.error('Geolocation error:', error);
+            showManualDirection();
+          }
+        );
+      } else {
+        showManualDirection();
+      }
+    }
+
+    function calculateQibla() {
+      const lat1 = userLatitude * Math.PI / 180;
+      const lon1 = userLongitude * Math.PI / 180;
+      const lat2 = kaabaLat * Math.PI / 180;
+      const lon2 = kaabaLon * Math.PI / 180;
+
+      const dLon = lon2 - lon1;
+      const y = Math.sin(dLon) * Math.cos(lat2);
+      const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+      
+      let bearing = Math.atan2(y, x) * 180 / Math.PI;
+      bearing = (bearing + 360) % 360;
+      
+      qiblaDirection = Math.round(bearing);
+      document.getElementById('qiblaDegree').textContent = qiblaDirection + '°';
+      
+      calculateDistance();
+    }
+
+    function calculateDistance() {
+      const R = 6371;
+      const dLat = (kaabaLat - userLatitude) * Math.PI / 180;
+      const dLon = (kaabaLon - userLongitude) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(userLatitude * Math.PI / 180) * Math.cos(kaabaLat * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      const distance = Math.round(R * c);
+      
+      const distanceEl = document.getElementById('kaabaDistance');
+      distanceEl.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+          <circle cx="12" cy="10" r="3"></circle>
+        </svg>
+        <span>Kaaba is ${distance.toLocaleString()} km away</span>
+      `;
+    }
+
+    function showManualDirection() {
+      document.getElementById('permissionSection').style.display = 'none';
+      document.getElementById('manualDirection').style.display = 'block';
+    }
+
+    async function requestCompassPermission() {
+      if (typeof DeviceOrientationEvent !== 'undefined' && 
+          typeof DeviceOrientationEvent.requestPermission === 'function') {
+        try {
+          const permission = await DeviceOrientationEvent.requestPermission();
+          if (permission === 'granted') {
+            startCompass();
+          } else {
+            showManualDirection();
+          }
+        } catch (error) {
+          console.error('Permission error:', error);
+          showManualDirection();
+        }
+      } else {
+        startCompass();
+      }
+    }
+
+    function startCompass() {
+      if (window.DeviceOrientationEvent) {
+        window.addEventListener('deviceorientation', handleOrientation);
+        compassActive = true;
+        setTimeout(() => {
+          if (!compassActive) {
+            showManualDirection();
+          }
+        }, 3000);
+      } else {
+        showManualDirection();
+      }
+    }
+
+    function handleOrientation(event) {
+      compassActive = true;
+      let heading = event.alpha;
+      
+      if (heading === null) {
+        showManualDirection();
+        return;
+      }
+      
+      if (event.webkitCompassHeading) {
+        heading = event.webkitCompassHeading;
+      }
+      
+      deviceHeading = heading;
+      document.getElementById('deviceBearing').textContent = `Facing: ${Math.round(heading)}°`;
+      
+      const relativeDirection = (qiblaDirection - heading + 360) % 360;
+      document.getElementById('compassNeedle').style.transform = `translate(-50%, -50%) rotate(${relativeDirection}deg)`;
+    }
+  </script>
+</body>
+</html>

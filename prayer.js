@@ -29,6 +29,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const countryInput = document.getElementById('countryInput');
   const cityInput = document.getElementById('cityInput');
   
+  // Notification setup
+  setupNotifications();
+  
   // Load saved settings
   const savedCountry = localStorage.getItem('prayerCountry') || '';
   const savedCity = localStorage.getItem('prayerCity') || '';
@@ -70,6 +73,105 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+
+function setupNotifications() {
+  const notificationBtn = document.getElementById('notificationBtn');
+  const notificationText = document.getElementById('notificationText');
+  
+  if (!notificationBtn) return;
+  
+  const notificationsEnabled = localStorage.getItem('prayerNotifications') === 'enabled';
+  
+  if (notificationsEnabled) {
+    notificationBtn.classList.add('active');
+    notificationText.textContent = 'Alerts On';
+    requestNotificationPermission();
+    schedulePrayerNotifications();
+  }
+  
+  notificationBtn.addEventListener('click', async () => {
+    const enabled = localStorage.getItem('prayerNotifications') === 'enabled';
+    
+    if (enabled) {
+      localStorage.setItem('prayerNotifications', 'disabled');
+      notificationBtn.classList.remove('active');
+      notificationText.textContent = 'Enable Alerts';
+    } else {
+      const granted = await requestNotificationPermission();
+      if (granted) {
+        localStorage.setItem('prayerNotifications', 'enabled');
+        notificationBtn.classList.add('active');
+        notificationText.textContent = 'Alerts On';
+        schedulePrayerNotifications();
+      }
+    }
+  });
+}
+
+async function requestNotificationPermission() {
+  if (!('Notification' in window)) {
+    return false;
+  }
+  
+  if (Notification.permission === 'granted') {
+    return true;
+  }
+  
+  if (Notification.permission !== 'denied') {
+    const permission = await Notification.requestPermission();
+    return permission === 'granted';
+  }
+  
+  return false;
+}
+
+function schedulePrayerNotifications() {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  
+  const savedCountry = localStorage.getItem('prayerCountry') || 'GB';
+  const savedCity = localStorage.getItem('prayerCity') || 'London';
+  
+  fetch(`https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(savedCity)}&country=${savedCountry}&method=2`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.data && data.data.timings) {
+        const timings = data.data.timings;
+        scheduleNotification('Fajr', timings.Fajr, 'Time for Fajr prayer');
+        scheduleNotification('Dhuhr', timings.Dhuhr, 'Time for Dhuhr prayer');
+        scheduleNotification('Asr', timings.Asr, 'Time for Asr prayer');
+        scheduleNotification('Maghrib', timings.Maghrib, 'Time for Maghrib prayer');
+        scheduleNotification('Isha', timings.Isha, 'Time for Isha prayer');
+      }
+    })
+    .catch(() => {});
+}
+
+function scheduleNotification(prayerName, time, message) {
+  const [hours, mins] = time.split(':').map(Number);
+  const now = new Date();
+  const prayerTime = new Date();
+  prayerTime.setHours(hours, mins, 0, 0);
+  
+  if (prayerTime <= now) {
+    prayerTime.setDate(prayerTime.getDate() + 1);
+  }
+  
+  const delay = prayerTime.getTime() - now.getTime();
+  
+  if (delay > 0 && delay < 24 * 60 * 60 * 1000) {
+    setTimeout(() => {
+      if (localStorage.getItem('prayerNotifications') === 'enabled') {
+        new Notification(`Deen Daily - ${prayerName}`, {
+          body: message,
+          icon: '/icons/logo.svg',
+          tag: `prayer-${prayerName}`,
+          requireInteraction: true
+        });
+      }
+      scheduleNotification(prayerName, time, message);
+    }, delay);
+  }
+}
 
 function loadCities(country) {
   const cityInput = document.getElementById('cityInput');

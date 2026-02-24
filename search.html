@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Search - Deen Daily</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☪</text></svg>">
+  <script src="config.js"></script>
+  <script>
+    if (window.DeenDaily) {
+      const theme = window.DeenDaily.getTheme();
+      window.DeenDaily.applyTheme(theme);
+    }
+  </script>
+</head>
+<body>
+  <header class="header">
+    <div class="container header-inner">
+      <a href="index.html" class="back-btn" style="margin-bottom: 0;">← Home</a>
+      <div class="header-info"><span class="lang-indicator">EN + UR</span></div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <div class="search-container">
+        <h1>Search</h1>
+        
+        <div class="search-tabs">
+          <button class="search-tab active" data-tab="quran">Quran</button>
+          <button class="search-tab" data-tab="duas">Duas</button>
+        </div>
+        
+        <div class="search-input-wrapper">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" id="searchInput" placeholder="Search Quran verses or duas..." class="search-input">
+          <button id="clearSearch" class="clear-btn" style="display: none;">✕</button>
+        </div>
+        
+        <div id="searchResults" class="search-results">
+          <p class="search-hint">Enter a search term to find verses or duas</p>
+        </div>
+        
+        <div id="recentSearches" class="recent-searches" style="display: none;">
+          <h3>Recent Searches</h3>
+          <div id="recentList"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <style>
+    .search-container { padding: 20px 0; }
+    .search-container h1 { font-size: 1.8rem; margin-bottom: 20px; text-align: center; }
+    .search-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+    .search-tab { flex: 1; padding: 12px; border: 1px solid var(--border); background: var(--bg-card); border-radius: var(--radius-md); font-size: 0.95rem; cursor: pointer; transition: all 0.2s; color: var(--text-secondary); }
+    .search-tab.active { background: var(--accent); color: white; border-color: var(--accent); }
+    .search-input-wrapper { position: relative; display: flex; align-items: center; margin-bottom: 20px; }
+    .search-input-wrapper svg { position: absolute; left: 16px; color: var(--text-tertiary); }
+    .search-input { width: 100%; padding: 16px 44px; border: 1px solid var(--border); border-radius: var(--radius-lg); font-size: 1rem; background: var(--bg-card); color: var(--text-primary); outline: none; }
+    .search-input:focus { border-color: var(--accent); }
+    .clear-btn { position: absolute; right: 16px; background: none; border: none; color: var(--text-tertiary); cursor: pointer; font-size: 1.2rem; padding: 4px; }
+    .search-results { min-height: 200px; }
+    .search-hint { text-align: center; color: var(--text-tertiary); padding: 40px 0; }
+    .result-item { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; margin-bottom: 12px; }
+    .result-item.ayah .arabic { font-family: 'Noto Naskh Arabic', serif; font-size: 1.3rem; direction: rtl; text-align: right; margin-bottom: 10px; color: var(--text-primary); }
+    .result-item.dua .arabic { font-family: 'Noto Naskh Arabic', serif; font-size: 1.1rem; direction: rtl; text-align: right; margin-bottom: 10px; color: var(--text-primary); }
+    .result-item .translation { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 8px; }
+    .result-item .urdu { font-family: 'Noto Sans Urdu', sans-serif; font-size: 0.85rem; direction: rtl; text-align: right; color: var(--text-tertiary); }
+    .result-item .source { font-size: 0.75rem; color: var(--accent); background: var(--accent-light); padding: 4px 10px; border-radius: 6px; display: inline-block; margin-top: 8px; }
+    .result-item .actions { display: flex; gap: 8px; margin-top: 12px; }
+    .result-item .actions button { padding: 8px 12px; border-radius: var(--radius-md); font-size: 0.8rem; cursor: pointer; }
+    .no-results { text-align: center; color: var(--text-tertiary); padding: 40px 0; }
+    .recent-searches h3 { font-size: 0.9rem; color: var(--text-tertiary); margin-bottom: 12px; }
+    .recent-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .recent-tag { background: var(--bg-tertiary); padding: 8px 14px; border-radius: 20px; font-size: 0.85rem; color: var(--text-secondary); cursor: pointer; }
+    .recent-tag:hover { background: var(--accent-light); color: var(--accent); }
+  </style>
+
+  <script>
+    let currentTab = 'quran';
+    let searchTimeout;
+    const duas = [];
+    
+    const fallbackDuas = [
+      { id: 1, arabic: "رَبِّ اشْرَحْ لِي صَدْرِي", english: "My Lord, expand for me my chest", urdu: "اے میرے رب! میری سینے کو وسیع کر", category: "Morning", source: "Surah Taha 20:25-28" },
+      { id: 2, arabic: "رَبِّ يَسِّرْ لِي أَمْرِي", english: "My Lord, ease for me my affair", urdu: "اے میرے رب! میرے کام کو آسان کر", category: "Morning", source: "Surah Taha 20:26" },
+      { id: 3, arabic: "اللَّهُمَّ إِنِّي أَسْأَلُكَ الْهُدَى وَالسَّدَادَ", english: "O Allah, I ask You for guidance and rightness", urdu: "اے اللہ! میں تیری ہدایت اور سداد کا سوال کرتا ہوں", category: "Morning", source: "Hadith" },
+      { id: 4, arabic: "اللَّهُمَّ أَعِنِّي عَلَى ذِكْرِكَ وَشُكْرِكَ وَحُسْنِ عِبَادَتِكَ", english: "O Allah, help me to remember You, thank You, and worship You excellently", urdu: "اے اللہ! تجھے یاد کرنے، تیری شکریہ ادا کرنے اور عبادت کی خوبی میں مرا مدد کر", category: "Morning", source: "Hadith" },
+      { id: 5, arabic: "اللَّهُمَّ مَا أَصْبَحَ بِي مِنْ نِعْمَةٍ فَمِنْكَ وَحْدَكَ", english: "O Allah, whatever blessing has come to me in the morning is from You alone", urdu: "اے اللہ! جو بھی نعمت مجھے صبح کو ملی ہے وہ صرف تیری طرف سے ہے", category: "Morning", source: "Hadith" },
+      { id: 6, arabic: "أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ", english: "We have reached the morning and all sovereignty belongs to Allah", urdu: "ہم صبح کو پہنچ گئے اور ساری بادشاہی اللہ کی ہے", category: "Morning", source: "Hadith" },
+      { id: 7, arabic: "سُبْحَانَ اللَّهِ وَبِحَمْدِهِ", english: "Glory be to Allah and praise be to Him", urdu: "اللہ کی پاکی اور اس کی تعریف", category: "Dhikr", source: "Hadith" },
+      { id: 8, arabic: "لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ", english: "There is no god but Allah, Alone, without partner", urdu: "اللہ کے سوا کوئی معبود نہیں، وہ اکیلا ہے، اس کا کوئی شریک نہیں", category: "Dhikr", source: "Hadith" },
+      { id: 9, arabic: "اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ", english: "O Allah, send blessings upon Muhammad and the family of Muhammad", urdu: "اے اللہ! محمد اور آل محمد پر رحمت بھیج", category: "Salawat", source: "Hadith" },
+      { id: 10, arabic: "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً", english: "Our Lord, give us in this world [that which is] good and in the Hereafter [that which is] good", urdu: "اے ہمارے رب! ہمیں دنیا میں بھی اچھائی دے اور آخرت میں بھی اچھائی دے", category: "General", source: "Surah Baqarah 2:201" }
+    ];
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadDuas();
+      loadRecentSearches();
+      
+      document.querySelectorAll('.search-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.search-tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          currentTab = tab.dataset.tab;
+          const input = document.getElementById('searchInput');
+          input.placeholder = currentTab === 'quran' ? 'Search Quran verses...' : 'Search duas...';
+          if (input.value) performSearch(input.value);
+        });
+      });
+      
+      const searchInput = document.getElementById('searchInput');
+      const clearBtn = document.getElementById('clearSearch');
+      
+      searchInput.addEventListener('input', (e) => {
+        clearBtn.style.display = e.target.value ? 'block' : 'none';
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => performSearch(e.target.value), 300);
+      });
+      
+      clearBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        clearBtn.style.display = 'none';
+        document.getElementById('searchResults').innerHTML = '<p class="search-hint">Enter a search term to find verses or duas</p>';
+        document.getElementById('recentSearches').style.display = 'block';
+      });
+    });
+
+    async function loadDuas() {
+      try {
+        const response = await fetch('duas.json');
+        if (response.ok) {
+          const data = await response.json();
+          duas.push(...data);
+        }
+      } catch (e) {
+        duas.push(...fallbackDuas);
+      }
+    }
+
+    function loadRecentSearches() {
+      const recent = JSON.parse(localStorage.getItem('recentSearches') || '[]');
+      if (recent.length > 0) {
+        document.getElementById('recentSearches').style.display = 'block';
+        document.getElementById('recentList').innerHTML = recent.map(term => 
+          `<span class="recent-tag" onclick="useRecentSearch('${term}')">${term}</span>`
+        ).join('');
+      }
+    }
+
+    window.useRecentSearch = function(term) {
+      document.getElementById('searchInput').value = term;
+      document.getElementById('clearSearch').style.display = 'block';
+      performSearch(term);
+    };
+
+    async function performSearch(query) {
+      const resultsContainer = document.getElementById('searchResults');
+      
+      if (!query.trim()) {
+        resultsContainer.innerHTML = '<p class="search-hint">Enter a search term to find verses or duas</p>';
+        document.getElementById('recentSearches').style.display = 'block';
+        return;
+      }
+      
+      document.getElementById('recentSearches').style.display = 'none';
+      saveRecentSearch(query);
+      resultsContainer.innerHTML = '<div class="loading"><div class="spinner"></div><p>Searching...</p></div>';
+      
+      if (currentTab === 'quran') {
+        await searchQuran(query);
+      } else {
+        searchDuas(query);
+      }
+    }
+
+    async function searchQuran(query) {
+      const resultsContainer = document.getElementById('searchResults');
+      
+      try {
+        const response = await fetch(`https://api.alquran.cloud/v1/search/${encodeURIComponent(query)}/all`);
+        const data = await response.json();
+        
+        if (data.data && data.data.results && data.data.results.length > 0) {
+          const results = data.data.results.slice(0, 20);
+          resultsContainer.innerHTML = results.map(result => `
+            <div class="result-item ayah">
+              <div class="arabic">${result.text}</div>
+              <div class="translation">${result.translation}</div>
+              <span class="source">${result.surah.englishName}:${result.ayahInSurah}</span>
+              <div class="actions">
+                <button class="btn btn-outline btn-small" onclick="shareAyah('${encodeURIComponent(result.text)}', '${result.surah.englishName}', ${result.ayahInSurah})">Share</button>
+                <button class="btn btn-outline btn-small" onclick="viewAyah(${result.surah.number}, ${result.ayahInSurah})">Read</button>
+              </div>
+            </div>
+          `).join('');
+        } else {
+          resultsContainer.innerHTML = '<p class="no-results">No verses found. Try a different search term.</p>';
+        }
+      } catch (error) {
+        resultsContainer.innerHTML = '<p class="no-results">Search unavailable. Please try again.</p>';
+      }
+    }
+
+    function searchDuas(query) {
+      const resultsContainer = document.getElementById('searchResults');
+      const lowerQuery = query.toLowerCase();
+      
+      const results = duas.filter(dua => 
+        dua.english.toLowerCase().includes(lowerQuery) ||
+        dua.arabic.includes(query) ||
+        (dua.urdu && dua.urdu.includes(query)) ||
+        dua.category.toLowerCase().includes(lowerQuery)
+      );
+      
+      if (results.length > 0) {
+        resultsContainer.innerHTML = results.map(dua => `
+          <div class="result-item dua">
+            <span class="category-badge">${dua.category}</span>
+            <div class="arabic">${dua.arabic}</div>
+            <div class="translation">${dua.english}</div>
+            ${dua.urdu ? `<div class="urdu">${dua.urdu}</div>` : ''}
+            <span class="source">${dua.source}</span>
+          </div>
+        `).join('');
+      } else {
+        resultsContainer.innerHTML = '<p class="no-results">No duas found. Try a different search term.</p>';
+      }
+    }
+
+    function saveRecentSearch(query) {
+      let recent = JSON.parse(localStorage.getItem('recentSearches') || '[]');
+      recent = recent.filter(s => s !== query);
+      recent.unshift(query);
+      recent = recent.slice(0, 5);
+      localStorage.setItem('recentSearches', JSON.stringify(recent));
+    }
+
+    window.shareAyah = function(encodedText, surah, ayah) {
+      const text = decodeURIComponent(encodedText);
+      const shareText = `"${text}"\n\n- ${surah}:${ayah}\n\nShared via Deen Daily`;
+      
+      if (navigator.share) {
+        navigator.share({ title: 'Quran Verse', text: shareText }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(shareText).then(() => {
+          alert('Copied to clipboard!');
+        }).catch(() => {});
+      }
+    };
+
+    window.viewAyah = function(surah, ayah) {
+      window.location.href = `quran-reader.html?surah=${surah}`;
+    };
+  </script>
+</body>
+</html>

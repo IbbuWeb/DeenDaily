@@ -392,6 +392,53 @@ button {
   display: inline-block;
 }
 
+.hadith-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.hadith-card .hadith-arabic {
+  font-family: 'Noto Naskh Arabic', serif;
+  font-size: 1.4rem;
+  line-height: 2;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  direction: rtl;
+  text-align: right;
+}
+
+.hadith-card .hadith-english {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+  line-height: 1.7;
+}
+
+.hadith-card .hadith-urdu {
+  font-family: 'Noto Sans Urdu', sans-serif;
+  font-size: 0.9rem;
+  color: var(--text-tertiary);
+  margin-bottom: 14px;
+  direction: rtl;
+  text-align: right;
+}
+
+.hadith-card .hadith-source {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--accent);
+  background: var(--accent-light);
+  padding: 6px 12px;
+  border-radius: 8px;
+  display: inline-block;
+}
+
+.hadith-card .hadith-grade {
+  font-size: 0.7rem;
+  color: var(--text-tertiary);
+  margin-left: 8px;
+}
+
 .ayah-actions {
   display: flex;
   justify-content: flex-end;
@@ -544,6 +591,22 @@ button {
   font-weight: 600;
   margin-bottom: 8px;
   letter-spacing: -0.02em;
+}
+
+.notification-toggle {
+  margin-bottom: 20px;
+}
+
+.notification-toggle .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.notification-toggle .btn.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
 }
 
 .location-selector {

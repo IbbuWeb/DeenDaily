@@ -8,8 +8,10 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☪</text></svg>">
   <script src="config.js"></script>
   <script>
-    const savedTheme = localStorage.getItem('deen-daily-theme') || 'white';
-    document.documentElement.setAttribute('data-theme', savedTheme);
+    if (window.DeenDaily) {
+      const theme = window.DeenDaily.getTheme();
+      window.DeenDaily.applyTheme(theme);
+    }
   </script>
 </head>
 <body>
@@ -51,6 +53,8 @@
     .verse-bookmark-btn { background: none; border: none; cursor: pointer; padding: 6px; color: var(--text-muted); transition: color 0.2s; }
     .verse-bookmark-btn:hover { color: var(--accent); }
     .verse-bookmark-btn.active { color: var(--accent); }
+    .verse-share-btn { background: none; border: none; cursor: pointer; padding: 6px; color: var(--text-muted); transition: color 0.2s; }
+    .verse-share-btn:hover { color: var(--accent); }
     .verse-audio-btn { background: none; border: none; cursor: pointer; padding: 6px; color: var(--text-muted); transition: color 0.2s; }
     .verse-audio-btn:hover { color: var(--accent); }
     .verse-card.bookmarked { border-color: var(--accent); background: var(--bg-highlight); }

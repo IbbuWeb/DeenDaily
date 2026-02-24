@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendar - Deen Daily</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☪</text></svg>">
+  <script src="config.js"></script>
+  <script>
+    if (window.DeenDaily) {
+      const theme = window.DeenDaily.getTheme();
+      window.DeenDaily.applyTheme(theme);
+    }
+  </script>
+</head>
+<body>
+  <header class="header">
+    <div class="container header-inner">
+      <a href="index.html" class="back-btn" style="margin-bottom: 0;">← Home</a>
+      <div class="header-info"><span class="lang-indicator">EN + UR</span></div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <div class="calendar-container">
+        <h1>Islamic Calendar</h1>
+        
+        <div class="calendar-nav">
+          <button id="prevMonth" class="btn btn-outline">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+          <h2 id="currentMonthYear">Loading...</h2>
+          <button id="nextMonth" class="btn btn-outline">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="hijri-date-display" id="hijriDateDisplay"></div>
+        
+        <div class="calendar-grid">
+          <div class="calendar-header">
+            <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+          </div>
+          <div class="calendar-days" id="calendarDays"></div>
+        </div>
+        
+        <div class="prayer-times-legend">
+          <h3>Prayer Times</h3>
+          <div class="legend-grid" id="legendGrid"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <style>
+    .calendar-container { padding: 20px 0; text-align: center; }
+    .calendar-container h1 { font-size: 1.8rem; margin-bottom: 20px; }
+    .calendar-nav { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 16px; }
+    .calendar-nav h2 { font-size: 1.3rem; min-width: 180px; }
+    .calendar-nav button { padding: 10px 16px; }
+    .hijri-date-display { font-size: 1.1rem; color: var(--accent); margin-bottom: 20px; font-weight: 500; }
+    .calendar-grid { margin-bottom: 30px; }
+    .calendar-header { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 8px; }
+    .calendar-header span { font-size: 0.8rem; font-weight: 600; color: var(--text-tertiary); padding: 8px; }
+    .calendar-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .calendar-day { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-card); font-size: 0.9rem; cursor: pointer; transition: all 0.2s; padding: 4px; }
+    .calendar-day:hover { border-color: var(--accent); }
+    .calendar-day.other-month { opacity: 0.3; }
+    .calendar-day.today { background: var(--accent); color: white; border-color: var(--accent); }
+    .calendar-day.selected { background: var(--accent-light); border-color: var(--accent); }
+    .calendar-day .gregorian { font-size: 0.7rem; color: var(--text-tertiary); }
+    .calendar-day.today .gregorian { color: rgba(255,255,255,0.8); }
+    .calendar-day .hijri { font-size: 0.85rem; font-weight: 600; }
+    .prayer-times-legend { text-align: left; }
+    .prayer-times-legend h3 { font-size: 1rem; margin-bottom: 12px; color: var(--text-secondary); }
+    .legend-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-secondary); }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .day-prayer-popup { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; z-index: 1000; min-width: 280px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+    .day-prayer-popup.show { display: block; }
+    .day-prayer-popup h3 { margin-bottom: 16px; font-size: 1.1rem; }
+    .day-prayer-popup .prayer-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+    .day-prayer-popup .prayer-row:last-child { border-bottom: none; }
+    .day-prayer-popup .prayer-name { color: var(--text-secondary); }
+    .day-prayer-popup .prayer-time { font-weight: 600; color: var(--text-primary); }
+    .popup-close { position: absolute; top: 12px; right: 12px; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-tertiary); }
+  </style>
+
+  <div class="day-prayer-popup" id="prayerPopup">
+    <button class="popup-close" onclick="closePrayerPopup()">✕</button>
+    <h3 id="popupDate">Prayer Times</h3>
+    <div id="popupPrayers"></div>
+  </div>
+
+  <script>
+    const hijriMonths = [
+      'Muharram', 'Safar', 'Rabi al-Awwal', 'Rabi al-Thani', 
+      'Jumada al-Awwal', 'Jumada al-Thani', 'Rajab', 'Sha\'ban',
+      'Ramadan', 'Shawwal', 'Dhu al-Qidah', 'Dhu al-Hijjah'
+    ];
+    
+    const hijriMonthsUrdu = [
+      'محرم', 'صفر', 'ربیع الأول', 'ربیع الثاني', 
+      'جمادی الأول', 'جمادی الثاني', 'رجب', 'شعبان',
+      'رمضان', 'شوال', 'ذو القعدہ', 'ذو الحجہ'
+    ];
+    
+    const prayerNames = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+    const prayerColors = ['#e74c3c', '#f39c12', '#3498db', '#9b59b6', '#e67e22', '#2c3e50'];
+    
+    let currentDate = new Date();
+    let selectedDate = null;
+    let monthPrayerTimes = {};
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      renderCalendar();
+      setupNavigation();
+    });
+    
+    function setupNavigation() {
+      document.getElementById('prevMonth').addEventListener('click', () => {
+        currentDate.setMonth(currentDate.getMonth() - 1);
+        renderCalendar();
+      });
+      
+      document.getElementById('nextMonth').addEventListener('click', () => {
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        renderCalendar();
+      });
+      
+      document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('day-prayer-popup') || e.target.closest('.day-prayer-popup')) return;
+        closePrayerPopup();
+      });
+    }
+    
+    async function renderCalendar() {
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      
+      document.getElementById('currentMonthYear').textContent = 
+        currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      
+      await fetchMonthPrayerTimes(year, month);
+      renderDaysGrid(year, month);
+      renderLegend();
+    }
+    
+    async function fetchMonthPrayerTimes(year, month) {
+      const city = localStorage.getItem('prayerCity') || 'London';
+      const country = localStorage.getItem('prayerCountry') || 'GB';
+      
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      const daysInMonth = lastDay.getDate();
+      
+      monthPrayerTimes = {};
+      
+      try {
+        for (let day = 1; day <= daysInMonth; day++) {
+          const date = new Date(year, month, day);
+          const dateStr = date.toISOString().split('T')[0];
+          
+          const response = await fetch(
+            `https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(city)}&country=${country}&method=2&date=${dateStr}`
+          );
+          
+          if (response.ok) {
+            const data = await response.json();
+            if (data.data && data.data.timings) {
+              monthPrayerTimes[day] = {
+                timings: data.data.timings,
+                hijri: data.data.hijri
+              };
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching prayer times:', error);
+      }
+    }
+    
+    function renderDaysGrid(year, month) {
+      const container = document.getElementById('calendarDays');
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      const daysInMonth = lastDay.getDate();
+      const startDayOfWeek = firstDay.getDay();
+      
+      const today = new Date();
+      let html = '';
+      
+      const prevMonthDays = new Date(year, month, 0).getDate();
+      for (let i = startDayOfWeek - 1; i >= 0; i--) {
+        const day = prevMonthDays - i;
+        html += `<div class="calendar-day other-month"><span class="gregorian">${day}</span></div>`;
+      }
+      
+      for (let day = 1; day <= daysInMonth; day++) {
+        const isToday = today.getDate() === day && 
+                       today.getMonth() === month && 
+                       today.getFullYear() === year;
+        
+        const hijriInfo = monthPrayerTimes[day]?.hijri || getLocalHijriDate(new Date(year, month, day));
+        
+        html += `
+          <div class="calendar-day ${isToday ? 'today' : ''}" onclick="showPrayerTimes(${day})">
+            <span class="gregorian">${day}</span>
+            <span class="hijri">${hijriInfo?.day || ''}</span>
+          </div>
+        `;
+      }
+      
+      const remainingDays = 42 - (startDayOfWeek + daysInMonth);
+      for (let day = 1; day <= remainingDays; day++) {
+        html += `<div class="calendar-day other-month"><span class="gregorian">${day}</span></div>`;
+      }
+      
+      container.innerHTML = html;
+      
+      const hijriInfo = monthPrayerTimes[15]?.hijri || getLocalHijriDate(new Date(year, month, 15));
+      if (hijriInfo) {
+        document.getElementById('hijriDateDisplay').textContent = 
+          `${hijriMonths[hijriInfo.month.en - 1]} ${hijriInfo.year} AH`;
+      }
+    }
+    
+    function getLocalHijriDate(date) {
+      const refDate = new Date(2026, 1, 19);
+      const refHijriYear = 1447;
+      const refMonth = 8;
+      const monthLengths = [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29];
+      
+      const diff = date - refDate;
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      
+      let totalDays = days;
+      let monthIndex = refMonth;
+      let year = refHijriYear;
+      
+      while (totalDays < 0) {
+        monthIndex--;
+        if (monthIndex < 0) { monthIndex = 11; year--; }
+        totalDays += monthLengths[monthIndex];
+      }
+      
+      let dayOfMonth = 1 + totalDays;
+      while (dayOfMonth > monthLengths[monthIndex]) {
+        dayOfMonth -= monthLengths[monthIndex];
+        monthIndex++;
+        if (monthIndex > 11) { monthIndex = 0; year++; }
+      }
+      
+      return { day: dayOfMonth, month: { en: monthIndex + 1 }, year: year };
+    }
+    
+    function renderLegend() {
+      const legendHtml = prayerNames.map((name, i) => `
+        <div class="legend-item">
+          <span class="legend-dot" style="background: ${prayerColors[i]}"></span>
+          <span>${name}</span>
+        </div>
+      `).join('');
+      
+      document.getElementById('legendGrid').innerHTML = legendHtml;
+    }
+    
+    window.showPrayerTimes = function(day) {
+      const data = monthPrayerTimes[day];
+      if (!data) return;
+      
+      const hijri = data.hijri || getLocalHijriDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), day));
+      const hijriMonth = hijriMonths[hijri.month.en - 1];
+      
+      document.getElementById('popupDate').textContent = 
+        `${day} ${currentDate.toLocaleDateString('en-US', { month: 'long' })} ${currentDate.getFullYear()} - ${hijri.day} ${hijriMonth} ${hijri.year} AH`;
+      
+      const prayersHtml = prayerNames.slice(0, 5).map((name, i) => `
+        <div class="prayer-row">
+          <span class="prayer-name" style="color: ${prayerColors[i]}">${name}</span>
+          <span class="prayer-time">${formatTime(data.timings[name])}</span>
+        </div>
+      `).join('');
+      
+      document.getElementById('popupPrayers').innerHTML = prayersHtml;
+      document.getElementById('prayerPopup').classList.add('show');
+    };
+    
+    window.closePrayerPopup = function() {
+      document.getElementById('prayerPopup').classList.remove('show');
+    };
+    
+    function formatTime(time) {
+      if (!time) return '--:--';
+      const [hours, mins] = time.split(':');
+      const period = parseInt(hours) >= 12 ? 'PM' : 'AM';
+      const hour12 = parseInt(hours) % 12 || 12;
+      return `${hour12}:${mins} ${period}`;
+    }
+  </script>
+</body>
+</html>

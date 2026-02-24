@@ -21,6 +21,7 @@ const firebaseConfig = {
 let app, auth, db;
 let currentUser = null;
 let currentAyah = null;
+let currentHadith = null;
 let duas = [];
 let displayedCount = 0;
 
@@ -70,6 +71,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Load data
   await loadDuaData();
   loadDailyAyah();
+  loadDailyHadith();
   setupInfiniteScroll();
   setupScrollCountdown();
 });
@@ -352,6 +354,154 @@ function renderDailyAyah(ayah) {
   `;
   
   document.getElementById('saveAyahBtn').addEventListener('click', () => saveAyah(ayah));
+  
+  const shareBtn = document.getElementById('shareAyahBtn');
+  if (shareBtn) {
+    shareBtn.addEventListener('click', () => {
+      const shareText = `"${ayah.arabic}"\n\n${ayah.english}\n\n- ${ayah.surah}:${ayah.ayah}\n\nShared via Deen Daily`;
+      if (navigator.share) {
+        navigator.share({ title: 'Daily Ayah', text: shareText }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(shareText).then(() => {
+          showToast('Copied to clipboard!');
+        }).catch(() => {
+          showToast('Could not copy', 'error');
+        });
+      }
+    });
+  }
+}
+
+// ==================== DAILY HADITH FUNCTIONS ====================
+const hadithBooks = [
+  { id: 'bukhari', name: 'Sahih al-Bukhari', ar: 'صحيح البخاري' },
+  { id: 'muslim', name: 'Sahih Muslim', ar: 'صحيح مسلم' },
+  { id: 'tirmidhi', name: 'Jami\' at-Tirmidhi', ar: 'جامع الترمذي' },
+  { id: 'nasai', name: 'Sunan an-Nasai', ar: 'سنن النسائي' },
+  { id: 'abudawud', name: 'Sunan Abu Dawud', ar: 'سنن أبي داود' },
+  { id: 'ibnmajah', name: 'Sunan Ibn Majah', ar: 'سنن ابن ماجه' }
+];
+
+async function loadDailyHadith() {
+  const hadithCard = document.getElementById('dailyHadith');
+  
+  try {
+    const randomBook = hadithBooks[Math.floor(Math.random() * hadithBooks.length)];
+    const randomHadithNumber = Math.floor(Math.random() * 300) + 1;
+    
+    const response = await fetch(`https://hadith-api.herokuapp.com/api/hadith/${randomBook.id}?book=${randomHadithNumber}`);
+    
+    if (!response.ok) throw new Error('Failed to fetch');
+    
+    const data = await response.json();
+    
+    if (data && data.hadiths && data.hadiths.length > 0) {
+      const hadith = data.hadiths[0];
+      currentHadith = {
+        id: randomHadithNumber,
+        bookId: randomBook.id,
+        bookName: randomBook.name,
+        bookArabic: randomBook.ar,
+        arabic: hadith.arab || '',
+        english: hadith.en || 'Translation not available',
+        urdu: hadith.urdu || '',
+        grade: hadith.grading || ''
+      };
+      
+      renderDailyHadith(currentHadith);
+    }
+  } catch (error) {
+    console.error('Error loading hadith:', error);
+    currentHadith = {
+      id: 1,
+      bookId: 'bukhari',
+      bookName: 'Sahih al-Bukhari',
+      bookArabic: 'صحيح البخاري',
+      arabic: "مَنْ سَلَكَ طَرِيقًا يَلْتَمِسُ فِيهِ عِلْمًا سَهَّلَ اللَّهُ لَهُ طَرِيقًا إِلَى الْجَنَّةِ",
+      english: "Whoever travels a path in search of knowledge, Allah will make easy for him a path to Paradise.",
+      urdu: "جس نے علم حاصل کرنے کی راہ لی، اللہ اس کے لیے جنت کی راہ آسان کر دیتا ہے",
+      grade: "Sahih (Authentic)"
+    };
+    renderDailyHadith(currentHadith);
+  }
+}
+
+function renderDailyHadith(hadith) {
+  const hadithCard = document.getElementById('dailyHadith');
+  
+  hadithCard.innerHTML = `
+    <div class="card-header">
+      <span class="card-title">Hadith of the Day</span>
+      <div class="hadith-actions">
+        <button class="btn-icon" id="shareHadithBtn" title="Share Hadith">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="18" cy="5" r="3"></circle>
+            <circle cx="6" cy="12" r="3"></circle>
+            <circle cx="18" cy="19" r="3"></circle>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+          </svg>
+        </button>
+        <button class="btn-icon" id="saveHadithBtn" title="Save Hadith">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="hadith-arabic">${hadith.arabic}</div>
+    <div class="hadith-english">${hadith.english}</div>
+    ${hadith.urdu ? `<div class="hadith-urdu">${hadith.urdu}</div>` : ''}
+    <span class="hadith-source">${hadith.bookName} (${hadith.bookArabic}) - Hadith #${hadith.id}</span>
+    ${hadith.grade ? `<span class="hadith-grade">${hadith.grade}</span>` : ''}
+  `;
+  
+  document.getElementById('saveHadithBtn').addEventListener('click', () => saveHadith(hadith));
+  document.getElementById('shareHadithBtn')?.addEventListener('click', () => shareHadith(hadith));
+}
+
+async function saveHadith(hadith) {
+  if (!currentUser) {
+    showToast('Please sign in to save hadiths', 'error');
+    window.location.href = 'login.html';
+    return;
+  }
+  
+  try {
+    await addDoc(collection(db, 'saved_hadiths'), {
+      userId: currentUser.uid,
+      bookId: hadith.bookId,
+      bookName: hadith.bookName,
+      arabic: hadith.arabic,
+      english: hadith.english,
+      urdu: hadith.urdu || '',
+      grade: hadith.grade,
+      hadithNumber: hadith.id,
+      savedAt: new Date()
+    });
+    
+    showToast('Hadith saved!');
+  } catch (error) {
+    console.error('Error saving hadith:', error);
+    showToast('Please sign in to save', 'error');
+  }
+}
+
+function shareHadith(hadith) {
+  const shareText = `"${hadith.english}"\n\n- ${hadith.bookName} #${hadith.id}\n\nShared via Deen Daily App`;
+  
+  if (navigator.share) {
+    navigator.share({
+      title: 'Hadith of the Day',
+      text: shareText
+    }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(shareText).then(() => {
+      showToast('Copied to clipboard!');
+    }).catch(() => {
+      showToast('Could not copy', 'error');
+    });
+  }
 }
 
 // ==================== DUA FEED FUNCTIONS ====================
@@ -423,6 +573,15 @@ function createDuaCard(dua, index) {
     <div class="urdu">${dua.urdu}</div>
     <div class="source">${dua.source}</div>
     <div class="dua-footer">
+      <button class="btn-icon" id="shareDuaBtn${dua.id}" title="Share Dua">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="18" cy="5" r="3"></circle>
+          <circle cx="6" cy="12" r="3"></circle>
+          <circle cx="18" cy="19" r="3"></circle>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+        </svg>
+      </button>
       <button class="btn-icon" id="saveDuaBtn${dua.id}" title="Save Dua">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
@@ -432,6 +591,16 @@ function createDuaCard(dua, index) {
   `;
   
   card.querySelector(`#saveDuaBtn${dua.id}`).addEventListener('click', () => saveDua(dua));
+  card.querySelector(`#shareDuaBtn${dua.id}`).addEventListener('click', () => {
+    const shareText = `"${dua.arabic}"\n\n${dua.english}\n\n- ${dua.source}\n\nShared via Deen Daily`;
+    if (navigator.share) {
+      navigator.share({ title: 'Dua', text: shareText }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(shareText).then(() => {
+        showToast('Copied to clipboard!');
+      }).catch(() => {});
+    }
+  });
   
   return card;
 }

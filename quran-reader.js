@@ -14,7 +14,9 @@ document.addEventListener('DOMContentLoaded', () => {
   if (surahId) {
     currentSurahId = parseInt(surahId);
     loadBookmark();
+    loadScrollPosition();
     loadSurah(surahId);
+    setupScrollPositionSaving();
   } else {
     window.location.href = 'quran.html';
   }
@@ -29,6 +31,33 @@ function loadBookmark() {
   } catch (e) {
     bookmarkedVerseNumber = null;
   }
+}
+
+function loadScrollPosition() {
+  try {
+    const scrollPos = localStorage.getItem('quranScrollPosition');
+    if (scrollPos) {
+      const pos = JSON.parse(scrollPos);
+      if (pos.surahId === currentSurahId) {
+        setTimeout(() => {
+          window.scrollTo(0, pos.scrollY);
+        }, 100);
+      }
+    }
+  } catch (e) {}
+}
+
+function setupScrollPositionSaving() {
+  let saveTimeout;
+  window.addEventListener('scroll', () => {
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(() => {
+      localStorage.setItem('quranScrollPosition', JSON.stringify({
+        surahId: currentSurahId,
+        scrollY: window.scrollY
+      }));
+    }, 500);
+  });
 }
 
 function saveBookmark(verseNumber) {
@@ -84,6 +113,15 @@ async function loadSurah(surahId) {
             <div class="verse-header">
               <div class="verse-number">${verse.numberInSurah}</div>
               <div class="verse-actions">
+                <button class="verse-share-btn" onclick="shareVerse('${encodeURIComponent(verse.text)}', '${currentSurahName}', ${verse.numberInSurah})" title="Share verse">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="18" cy="5" r="3"></circle>
+                    <circle cx="6" cy="12" r="3"></circle>
+                    <circle cx="18" cy="19" r="3"></circle>
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                  </svg>
+                </button>
                 ${audioUrl ? `
                   <button class="verse-audio-btn" onclick="playVerseAudio('${audioUrl}', ${verse.numberInSurah})" title="Play recitation">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
@@ -283,3 +321,16 @@ audioPlayer.addEventListener('ended', () => {
     updateFloatingBar();
   }
 });
+
+window.shareVerse = function(encodedText, surah, ayah) {
+  const text = decodeURIComponent(encodedText);
+  const shareText = `"${text}"\n\n- ${surah}:${ayah}\n\nShared via Deen Daily`;
+  
+  if (navigator.share) {
+    navigator.share({ title: 'Quran Verse', text: shareText }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(shareText).then(() => {
+      alert('Copied to clipboard!');
+    }).catch(() => {});
+  }
+};
