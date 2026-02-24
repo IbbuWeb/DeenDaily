@@ -302,6 +302,7 @@ async function loadDailyAyah() {
       const verse = data.data;
       currentAyah = {
         id: verse.number,
+        surahId: verse.surah.number,
         arabic: verse.text,
         english: verse.translation || 'Translation not available',
         surah: verse.surah.nameEnglish,

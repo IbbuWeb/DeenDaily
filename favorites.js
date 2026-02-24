@@ -196,6 +196,11 @@ window.deleteItem = async function(collectionName, docId) {
     return;
   }
   
+  if (!db) {
+    alert('Database not available. Please refresh the page.');
+    return;
+  }
+  
   try {
     await deleteDoc(doc(db, collectionName, docId));
   } catch (error) {

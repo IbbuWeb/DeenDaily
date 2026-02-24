@@ -131,21 +131,16 @@ window.toggleBookmark = function(verseNumber) {
     saveBookmark(verseNumber);
   }
   
-  // Update UI
-  document.querySelectorAll('.verse-bookmark-btn').forEach(btn => {
-    btn.classList.remove('active');
-    btn.querySelector('svg').setAttribute('fill', 'none');
-  });
-  document.querySelectorAll('.verse-card').forEach(card => card.classList.remove('bookmarked'));
+  // Update UI for the specific verse
+  const btn = document.querySelector(`.verse-card[data-verse="${verseNumber}"] .verse-bookmark-btn`);
+  const card = document.querySelector(`.verse-card[data-verse="${verseNumber}"]`);
   
-  if (bookmarkedVerseNumber) {
-    const btn = document.querySelector(`.verse-card[data-verse="${bookmarkedVerseNumber}"] .verse-bookmark-btn`);
-    if (btn) {
-      btn.classList.add('active');
-      btn.querySelector('svg').setAttribute('fill', 'currentColor');
-    }
-    const card = document.querySelector(`.verse-card[data-verse="${bookmarkedVerseNumber}"]`);
-    if (card) card.classList.add('bookmarked');
+  if (btn) {
+    btn.classList.toggle('active', bookmarkedVerseNumber === verseNumber);
+    btn.querySelector('svg').setAttribute('fill', bookmarkedVerseNumber === verseNumber ? 'currentColor' : 'none');
+  }
+  if (card) {
+    card.classList.toggle('bookmarked', bookmarkedVerseNumber === verseNumber);
   }
 };
 

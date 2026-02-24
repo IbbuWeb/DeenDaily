@@ -125,17 +125,20 @@ async function loadPrayerTimes(city, country) {
       { name: 'Isha', time: timings.Isha }
     ];
     
-    // Find current/next prayer
+    // Find current/next prayer (excluding sunrise)
     const now = new Date();
     const currentTime = now.getHours() * 60 + now.getMinutes();
     
+    // Filter out sunrise for display and index calculation
+    const displayPrayers = prayers.filter(p => !p.isSunrise);
+    
     let activeIndex = -1;
     
-    for (let i = 0; i < prayers.length; i++) {
-      const [hours, mins] = prayers[i].time.split(':').map(Number);
+    for (let i = 0; i < displayPrayers.length; i++) {
+      const [hours, mins] = displayPrayers[i].time.split(':').map(Number);
       const prayerMinutes = hours * 60 + mins;
       
-      if (prayerMinutes > currentTime && !prayers[i].isSunrise) {
+      if (prayerMinutes > currentTime) {
         activeIndex = i;
         break;
       }
@@ -147,9 +150,7 @@ async function loadPrayerTimes(city, country) {
     }
     
     // Render prayer list
-    prayerList.innerHTML = prayers.map((prayer, index) => {
-      if (prayer.isSunrise) return '';
-      
+    prayerList.innerHTML = displayPrayers.map((prayer, index) => {
       const isActive = index === activeIndex;
       const formattedTime = format12Hour(prayer.time);
       
