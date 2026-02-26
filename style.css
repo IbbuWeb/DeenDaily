@@ -1749,3 +1749,42 @@ button {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
+
+/* Ramadan Quick Access Card */
+.ramadan-quick-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: linear-gradient(135deg, #1a5f4a 0%, #0d3d2e 100%);
+  color: white;
+  text-decoration: none;
+  padding: 18px 22px;
+}
+
+.ramadan-quick-card:hover {
+  border-color: var(--accent);
+}
+
+.ramadan-quick-icon {
+  font-size: 2.2rem;
+}
+
+.ramadan-quick-content {
+  flex: 1;
+}
+
+.ramadan-quick-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.ramadan-quick-subtitle {
+  font-size: 0.8rem;
+  opacity: 0.85;
+  margin-top: 2px;
+}
+
+.ramadan-quick-arrow {
+  font-size: 1.3rem;
+  opacity: 0.8;
+}
