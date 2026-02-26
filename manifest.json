@@ -63,6 +63,13 @@
   "screenshots": [],
   "shortcuts": [
     {
+      "name": "Ramadan Tracker",
+      "short_name": "Ramadan",
+      "description": "Track your fasting",
+      "url": "/ramadan.html",
+      "icons": [{ "src": "icons/ramadan-shortcut.png", "sizes": "96x96" }]
+    },
+    {
       "name": "Quran",
       "short_name": "Quran",
       "description": "Read the Holy Quran",
