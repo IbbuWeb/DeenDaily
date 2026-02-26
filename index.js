@@ -659,6 +659,48 @@ function showToast(message, type = 'success') {
   }, 3000);
 }
 
+function showShareModal(shareResult, dua) {
+  let modal = document.getElementById('shareDuaModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'shareDuaModal';
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Share Dua</h3>
+          <button class="modal-close" onclick="this.closest('.modal-overlay').classList.remove('active')">&times;</button>
+        </div>
+        <div class="modal-body" id="shareDuaModalBody"></div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+  
+  const modalBody = document.getElementById('shareDuaModalBody');
+  modalBody.innerHTML = `
+    <div class="qr-share-container">
+      <p style="margin-bottom: 10px; color: var(--text-secondary);">${dua.category}</p>
+      <div class="qr-code">
+        <img src="${shareResult.qr}" alt="QR Code" />
+      </div>
+      <div class="share-options">
+        <button class="share-btn copy" onclick="navigator.clipboard.writeText('${shareResult.url}').then(() => showToast('Link copied!', 'success'))">
+          📋 Copy Link
+        </button>
+        <button class="share-btn whatsapp" onclick="window.open('https://wa.me/?text=${encodeURIComponent(dua.arabic + '\n\n' + dua.english)}', '_blank')">
+          💬 WhatsApp
+        </button>
+        <button class="share-btn telegram" onclick="window.open('https://t.me/share/url?url=${encodeURIComponent(dua.arabic + '\n\n' + dua.english)}', '_blank')">
+          ✈️ Telegram
+        </button>
+      </div>
+    </div>
+  `;
+  
+  modal.classList.add('active');
+}
+
 async function saveAyah(ayah) {
   if (!currentUser) {
     showToast('Please sign in to save ayahs', 'error');
