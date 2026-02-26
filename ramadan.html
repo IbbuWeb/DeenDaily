@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1a5f4a">
+  <title>Ramadan Tracker - Deen Daily</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="config.js"></script>
+  <script>
+    if (window.DeenDaily) {
+      const theme = window.DeenDaily.getTheme();
+      window.DeenDaily.applyTheme(theme);
+    }
+  </script>
+</head>
+<body>
+  <div id="toast" class="toast"></div>
+  
+  <header class="header">
+    <div class="container header-inner">
+      <a href="index.html" class="back-btn">←</a>
+      <h1>Ramadan Tracker</h1>
+      <div style="width: 40px;"></div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      
+      <!-- Ramadan Status Card -->
+      <div class="card ramadan-status-card">
+        <div class="ramadan-icon">🌙</div>
+        <div class="ramadan-day" id="ramadanDay">--</div>
+        <div class="ramadan-label">Day of Ramadan</div>
+        <div class="ramadan-date" id="ramadanDate">Loading...</div>
+      </div>
+
+      <!-- Location Settings -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📍 Your Location</span>
+        </div>
+        <div class="location-row">
+          <select id="countryInput" class="select-input">
+            <option value="">Select Country</option>
+          </select>
+          <select id="cityInput" class="select-input" disabled>
+            <option value="">Select City</option>
+          </select>
+        </div>
+        <button id="saveLocationBtn" class="btn btn-primary" style="width: 100%; margin-top: 10px;">Save Location</button>
+      </div>
+
+      <!-- Sehri & Iftar Times -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Sehri & Iftar Times</span>
+        </div>
+        <div class="times-grid">
+          <div class="time-card sehri">
+            <div class="time-label">Sehri Ends</div>
+            <div class="time-value" id="sehriTime">--:--</div>
+            <div class="time-remaining" id="sehriRemaining"></div>
+          </div>
+          <div class="time-card iftar">
+            <div class="time-label">Iftar</div>
+            <div class="time-value" id="iftarTime">--:--</div>
+            <div class="time-remaining" id="iftarRemaining"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fasting Status -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Today's Fast</span>
+        </div>
+        <div class="fast-status" id="fastStatus">
+          <div class="fast-timer" id="fastTimer">00:00:00</div>
+          <div class="fast-duration-label">Fasting Duration</div>
+        </div>
+        <button id="toggleFastBtn" class="btn btn-primary" style="width: 100%;">
+          Start Fast
+        </button>
+      </div>
+
+      <!-- Fast History -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Fast History</span>
+        </div>
+        <div class="fast-history" id="fastHistory">
+          <div class="history-empty">No fasting data yet</div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Statistics</span>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-value" id="totalFasts">0</div>
+            <div class="stat-label">Fasts Completed</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="currentStreak">0</div>
+            <div class="stat-label">Day Streak</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <nav class="bottom-nav">
+    <a href="index.html" class="nav-item">🏠</a>
+    <a href="prayer.html" class="nav-item">🕐</a>
+    <a href="quran.html" class="nav-item">📖</a>
+    <a href="tasbih.html" class="nav-item">📿</a>
+    <a href="calendar.html" class="nav-item">📅</a>
+  </nav>
+
+  <script src="ramadan.js"></script>
+</body>
+</html>

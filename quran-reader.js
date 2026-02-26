@@ -322,15 +322,94 @@ audioPlayer.addEventListener('ended', () => {
   }
 });
 
-window.shareVerse = function(encodedText, surah, ayah) {
+window.shareVerse = async function(encodedText, surah, ayah) {
   const text = decodeURIComponent(encodedText);
-  const shareText = `"${text}"\n\n- ${surah}:${ayah}\n\nShared via Deen Daily`;
   
-  if (navigator.share) {
-    navigator.share({ title: 'Quran Verse', text: shareText }).catch(() => {});
+  if (window.DeenDaily?.shareContent) {
+    const verseData = {
+      text: text,
+      surah: surah,
+      ayah: ayah,
+      type: 'quran-verse'
+    };
+    
+    const shareResult = await window.DeenDaily.shareContent(verseData, 'quran');
+    
+    showQRModal(shareResult, text, surah, ayah);
   } else {
-    navigator.clipboard.writeText(shareText).then(() => {
-      alert('Copied to clipboard!');
-    }).catch(() => {});
+    const shareText = `"${text}"\n\n- ${surah}:${ayah}\n\nShared via Deen Daily`;
+    
+    if (navigator.share) {
+      navigator.share({ title: 'Quran Verse', text: shareText }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(shareText).then(() => {
+        window.DeenDaily?.showToast('Copied to clipboard!', 'success');
+      }).catch(() => {});
+    }
   }
 };
+
+function showQRModal(shareResult, text, surah, ayah) {
+  let modal = document.getElementById('qrModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'qrModal';
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Share Verse</h3>
+          <button class="modal-close" onclick="closeQRModal()">&times;</button>
+        </div>
+        <div class="modal-body" id="qrModalBody"></div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+  
+  const modalBody = document.getElementById('qrModalBody');
+  modalBody.innerHTML = `
+    <div class="qr-share-container">
+      <p style="margin-bottom: 10px; color: var(--text-secondary);">${surah}:${ayah}</p>
+      <div class="qr-code">
+        <img src="${shareResult.qr}" alt="QR Code" />
+      </div>
+      <div class="share-options">
+        <button class="share-btn copy" onclick="copyShareLink('${shareResult.url}')">
+          📋 Copy Link
+        </button>
+        <button class="share-btn whatsapp" onclick="shareViaWhatsApp('${encodeURIComponent(text)}', '${surah}', ${ayah})">
+          💬 WhatsApp
+        </button>
+        <button class="share-btn telegram" onclick="shareViaTelegram('${encodeURIComponent(text)}', '${surah}', ${ayah})">
+          ✈️ Telegram
+        </button>
+      </div>
+    </div>
+  `;
+  
+  modal.classList.add('active');
+}
+
+function closeQRModal() {
+  const modal = document.getElementById('qrModal');
+  if (modal) modal.classList.remove('active');
+}
+
+window.closeQRModal = closeQRModal;
+
+function copyShareLink(url) {
+  navigator.clipboard.writeText(url).then(() => {
+    window.DeenDaily?.showToast('Link copied!', 'success');
+  });
+}
+
+function shareViaWhatsApp(text, surah, ayah) {
+  const message = `${text}\n\n- ${surah}:${ayah}\n\nShared via Deen Daily`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+}
+
+function shareViaTelegram(text, surah, ayah) {
+  const message = `${text}\n\n- ${surah}:${ayah}\n\nShared via Deen Daily`;
+  window.open(`https://t.me/share/url?url=${encodeURIComponent(message)}`, '_blank');
+}

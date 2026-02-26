@@ -176,7 +176,17 @@ window.DeenDaily = {
   updateThemeUI,
   setupSettingsPanel,
   setupProfileUI,
-  initCommon
+  initCommon,
+  // Prayer Notifications
+  requestNotificationPermission,
+  initPrayerNotifications,
+  enablePrayerNotification,
+  disablePrayerNotification,
+  getNotificationStatus,
+  // P2P Sharing
+  shareContent,
+  shareViaQR,
+  parseSharedData
 };
 
 // Require authentication - call this on pages that need login
@@ -200,4 +210,217 @@ async function requireAuth() {
       resolve(user);
     });
   });
+}
+
+// Prayer Notification System
+const PRAYER_NAMES = {
+  Fajr: 'Fajr',
+  Sunrise: 'Sunrise',
+  Dhuhr: 'Dhuhr',
+  Asr: 'Asr',
+  Maghrib: 'Maghrib',
+  Isha: 'Isha'
+};
+
+async function requestNotificationPermission() {
+  if (!('Notification' in window)) {
+    return { granted: false, reason: 'not_supported' };
+  }
+  
+  if (Notification.permission === 'granted') {
+    return { granted: true };
+  }
+  
+  if (Notification.permission !== 'denied') {
+    const permission = await Notification.requestPermission();
+    return { granted: permission === 'granted', reason: permission === 'denied' ? 'denied' : 'default' };
+  }
+  
+  return { granted: false, reason: 'denied' };
+}
+
+function schedulePrayerNotification(prayerName, time, city) {
+  const notifications = getScheduledNotifications();
+  
+  if (!notifications[prayerName]) {
+    notifications[prayerName] = {
+      enabled: true,
+      time: time,
+      city: city
+    };
+    saveScheduledNotifications(notifications);
+  }
+}
+
+function getScheduledNotifications() {
+  return JSON.parse(localStorage.getItem('prayerNotifications') || '{}');
+}
+
+function saveScheduledNotifications(notifications) {
+  localStorage.setItem('prayerNotifications', JSON.stringify(notifications));
+}
+
+async function initPrayerNotifications() {
+  const result = await requestNotificationPermission();
+  
+  if (result.granted) {
+    localStorage.setItem('notificationPermission', 'granted');
+    checkAndNotify();
+    setInterval(checkAndNotify, 60000);
+  } else {
+    localStorage.setItem('notificationPermission', result.reason || 'denied');
+  }
+  
+  return result;
+}
+
+function checkAndNotify() {
+  const notifications = getScheduledNotifications();
+  const now = new Date();
+  const currentTime = now.toTimeString().slice(0, 5);
+  
+  for (const [prayerName, config] of Object.entries(notifications)) {
+    if (config.enabled && config.time === currentTime) {
+      showPrayerNotification(prayerName, config.city);
+    }
+  }
+}
+
+function showPrayerNotification(prayerName, city) {
+  const cityText = city ? ` in ${city}` : '';
+  
+  if (Notification.permission === 'granted') {
+    const notification = new Notification('Prayer Time', {
+      body: `${PRAYER_NAMES[prayerName] || prayerName} time is now${cityText}`,
+      icon: 'icons/logo.svg',
+      badge: 'icons/logo.svg',
+      tag: 'prayer-notification',
+      requireInteraction: true
+    });
+    
+    notification.onclick = () => {
+      window.focus();
+      notification.close();
+    };
+  }
+  
+  if ('vibrate' in navigator) {
+    navigator.vibrate([200, 100, 200]);
+  }
+}
+
+function enablePrayerNotification(prayerName, time, city) {
+  const notifications = getScheduledNotifications();
+  notifications[prayerName] = {
+    enabled: true,
+    time: time,
+    city: city
+  };
+  saveScheduledNotifications(notifications);
+}
+
+function disablePrayerNotification(prayerName) {
+  const notifications = getScheduledNotifications();
+  if (notifications[prayerName]) {
+    notifications[prayerName].enabled = false;
+    saveScheduledNotifications(notifications);
+  }
+}
+
+function getNotificationStatus() {
+  return {
+    permission: Notification.permission,
+    scheduled: getScheduledNotifications()
+  };
+}
+
+// P2P Sharing - QR Code Generation
+function generateQRCode(text) {
+  return new Promise((resolve, reject) => {
+    const qrCanvas = document.createElement('canvas');
+    
+    if (window.QRCode) {
+      new QRCode(qrCanvas, {
+        text: text,
+        width: 200,
+        height: 200,
+        colorDark: '#000000',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H
+      });
+      setTimeout(() => resolve(qrCanvas.toDataURL()), 100);
+    } else {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js';
+      script.onload = () => {
+        QRCode.toCanvas(qrCanvas, text, { width: 200 }, (error) => {
+          if (error) reject(error);
+          else resolve(qrCanvas.toDataURL());
+        });
+      };
+      script.onerror = reject;
+      document.head.appendChild(script);
+    }
+  });
+}
+
+async function shareViaQR(data, type = 'verse') {
+  const shareData = {
+    type: type,
+    data: data,
+    app: 'DeenDaily',
+    timestamp: Date.now()
+  };
+  
+  const encoded = btoa(encodeURIComponent(JSON.stringify(shareData)));
+  const shareUrl = `${window.location.origin}${window.location.pathname}?shared=${encoded}`;
+  
+  const qrDataUrl = await generateQRCode(shareUrl);
+  return { url: shareUrl, qr: qrDataUrl };
+}
+
+function parseSharedData(encoded) {
+  try {
+    const decoded = decodeURIComponent(atob(encoded));
+    const data = JSON.parse(decoded);
+    
+    if (data.app === 'DeenDaily') {
+      return data;
+    }
+  } catch (e) {
+    console.error('Failed to parse shared data:', e);
+  }
+  return null;
+}
+
+async function shareContent(data, type = 'verse') {
+  const { url, qr } = await shareViaQR(data, type);
+  
+  return {
+    url: url,
+    qr: qr,
+    copyToClipboard: async () => {
+      try {
+        await navigator.clipboard.writeText(url);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    shareViaApi: async () => {
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: 'DeenDaily',
+            text: `Shared from DeenDaily: ${data.text || data.dua || ''}`,
+            url: url
+          });
+          return true;
+        } catch {
+          return false;
+        }
+      }
+      return false;
+    }
+  };
 }

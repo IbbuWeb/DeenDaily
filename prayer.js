@@ -255,14 +255,52 @@ async function loadPrayerTimes(city, country) {
     prayerList.innerHTML = displayPrayers.map((prayer, index) => {
       const isActive = index === activeIndex;
       const formattedTime = format12Hour(prayer.time);
+      const notificationKey = `notify_${prayer.name}`;
+      const isNotified = localStorage.getItem(notificationKey) === 'true';
       
       return `
         <div class="prayer-item ${isActive ? 'active' : ''}">
           <span class="prayer-item-name">${prayer.name}</span>
           <span class="prayer-item-time">${formattedTime}</span>
+          <button class="prayer-notify-btn ${isNotified ? 'active' : ''}" 
+                  data-prayer="${prayer.name}" 
+                  data-time="${prayer.time}"
+                  title="${isNotified ? 'Disable notification' : 'Enable notification'}">
+            ${isNotified ? '🔔' : '🔕'}
+          </button>
         </div>
       `;
     }).join('');
+    
+    // Add click handlers for notification buttons
+    document.querySelectorAll('.prayer-notify-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const prayerName = btn.dataset.prayer;
+        const prayerTime = btn.dataset.time;
+        const isNotified = localStorage.getItem(`notify_${prayerName}`) === 'true';
+        
+        if (isNotified) {
+          localStorage.removeItem(`notify_${prayerName}`);
+          btn.classList.remove('active');
+          btn.innerHTML = '🔕';
+          btn.title = 'Enable notification';
+          window.DeenDaily?.disablePrayerNotification(prayerName);
+          window.DeenDaily?.showToast(`${prayerName} notifications disabled`);
+        } else {
+          const result = await window.DeenDaily?.requestNotificationPermission();
+          if (result?.granted) {
+            localStorage.setItem(`notify_${prayerName}`, 'true');
+            btn.classList.add('active');
+            btn.innerHTML = '🔔';
+            btn.title = 'Disable notification';
+            const city = localStorage.getItem('prayerCity') || '';
+            window.DeenDaily?.enablePrayerNotification(prayerName, prayerTime, city);
+            window.DeenDaily?.showToast(`${prayerName} notifications enabled`);
+          }
+        }
+      });
+    });
     
     loading.style.display = 'none';
     prayerList.style.display = 'flex';

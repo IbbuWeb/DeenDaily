@@ -591,14 +591,27 @@ function createDuaCard(dua, index) {
   `;
   
   card.querySelector(`#saveDuaBtn${dua.id}`).addEventListener('click', () => saveDua(dua));
-  card.querySelector(`#shareDuaBtn${dua.id}`).addEventListener('click', () => {
-    const shareText = `"${dua.arabic}"\n\n${dua.english}\n\n- ${dua.source}\n\nShared via Deen Daily`;
-    if (navigator.share) {
-      navigator.share({ title: 'Dua', text: shareText }).catch(() => {});
+  card.querySelector(`#shareDuaBtn${dua.id}`).addEventListener('click', async () => {
+    const duaData = {
+      arabic: dua.arabic,
+      english: dua.english,
+      source: dua.source,
+      category: dua.category,
+      type: 'dua'
+    };
+    
+    if (window.DeenDaily?.shareContent) {
+      const shareResult = await window.DeenDaily.shareContent(duaData, 'dua');
+      showShareModal(shareResult, dua);
     } else {
-      navigator.clipboard.writeText(shareText).then(() => {
-        showToast('Copied to clipboard!');
-      }).catch(() => {});
+      const shareText = `"${dua.arabic}"\n\n${dua.english}\n\n- ${dua.source}\n\nShared via Deen Daily`;
+      if (navigator.share) {
+        navigator.share({ title: 'Dua', text: shareText }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(shareText).then(() => {
+          showToast('Copied to clipboard!');
+        }).catch(() => {});
+      }
     }
   });
   
